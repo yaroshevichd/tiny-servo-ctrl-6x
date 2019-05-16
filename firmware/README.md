@@ -15,23 +15,18 @@ For given hardware (ATtiny44) the following hardware will be used:
 It supposed that the following algorithm will provide enough precision:
 
 * Build array of PWM data which includes the following:
-
-** Timer1 ticks count relative to previous array record, so that sum of all ticks will produce
-   desired pulse length.
-** Mask of servo need to be disabled.
-
+  * Timer1 ticks count relative to previous array record, so that sum of all ticks will produce
+    desired pulse length.
+  * Mask of servo need to be disabled.
 * Array sorting order is based on sorted array of desired servos positions, which in turns, must
   be sorted in ascending order.
 * Timer0 must be configured to generate interrupt with desired frequency (by default 50 Hz).
 * Timer0 COMPA interrupt must do the following:
-
-** Setup pointer to point first element of array
-** Set Timer1 registers in accordance to data in first element of array
-** Wait for some time, in case of necessity, before set all channels to HIGH and running Timer1
-
+  * Setup pointer to point first element of array
+  * Set Timer1 registers in accordance to data in first element of array
+  * Wait for some time, in case of necessity, before set all channels to HIGH and running Timer1
 * Timer1 COMPA interrupt must do the following (it must be done faster than 64cc):
-
-** Disable channels specified in data which pointer points to
-** Advance pointer to 1 element forward
-** If number of ticks equals to zero then stop Timer1
-** Set Timer1 registers to count up to data which pointer points to
+  * Disable channels specified in data which pointer points to
+  * Advance pointer to 1 element forward
+  * If number of ticks equals to zero then stop Timer1
+  * Set Timer1 registers to count up to data which pointer points to
