@@ -6,6 +6,7 @@
 void twi_init(const uint8_t address, void (*on_request_ptr)(void), void (*on_receive_ptr)(uint8_t));
 void twi_stop();
 void twi_send_uint8(const uint8_t value);
+void twi_drop_out_data(void);
 uint8_t twi_get_uint8(void);
 uint8_t twi_has_in_data(void);
 uint8_t twi_has_out_data(void);

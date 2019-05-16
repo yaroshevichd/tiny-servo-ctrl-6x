@@ -145,6 +145,11 @@ uint8_t twi_get_uint8()
     return rtn_byte;
 }
 
+void twi_drop_out_data(void)
+{
+    txCount = 0;
+}
+
 uint8_t twi_has_in_data(void)
 {
     return rxCount ? 1 : 0;
@@ -200,7 +205,6 @@ ISR(USI_OVERFLOW_VECTOR)
         case (USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA):
             if (USIDR)
             {
-                txCount = 0;    // drop rest of the data
                 SET_USI_TO_TWI_START_CONDITION_MODE();
                 return;
             }

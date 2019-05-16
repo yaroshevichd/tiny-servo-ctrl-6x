@@ -88,14 +88,16 @@ void tim0_callback()
 }
 
 /// @brief Timer callback which is responsible for pulse length in range [0.5-2.5] (ms)
-/// @details Actual PWM output happen 28cc later than interrupt fired, in the same
+/// @details Actual PWM output happen 30cc later than interrupt fired, in the same
 /// time first interrupt (min pulse length) triggered with -32cc error, as a result
-/// total error should be around 4cc or 0.5us
+/// total error should be around 2cc or 0.25us
 void tim1_callback()
 {
     asm("in r5, __SREG__"::);
     asm("mov r8, r24"::);
     asm("mov r9, r25"::);
+    asm("mov r10, r1"::);
+    asm("eor r1, r1"::);
 
     asm(
         "ld     r25, Z+ \n\t"
@@ -103,7 +105,7 @@ void tim1_callback()
         "com    r25     \n\t"
         "in     r24, %2 \n\t"
         "and    r24, r25\n\t"
-        "out    %2, r24 \n\t"   // PULSE_LOW(pwm_output_cur->disable_mask);     +4+9+15cc=28cc
+        "out    %2, r24 \n\t"   // PULSE_LOW(pwm_output_cur->disable_mask);     +4+9+17cc=30cc
         "ld     r24, Z  \n\t"   // ++pwm_output_cur;
         "cpse   r24, r1 \n\t"   // if (pwm_output_cur->timer_counts == 0)
         "rjmp   1f      \n\t"
@@ -116,6 +118,7 @@ void tim1_callback()
           "I" (_SFR_IO_ADDR(OCR1AL))
     );
 
+    asm("mov r1, r10"::);
     asm("mov r25, r9"::);
     asm("mov r24, r8"::);
     asm("out __SREG__, r5"::);
@@ -124,7 +127,7 @@ void tim1_callback()
 __attribute__((noinline))
 uint8_t transle_pos_to_pwm_pulse_len(const servo_pos_t servo_pos)
 {
-    return ((pwm_pulse_len * servo_pos) / 1800UL);
+    return ((unsigned long)pwm_pulse_len * servo_pos / MAX_POS_DEG);
 }
 
 uint8_t pulse_len_to_counts(const uint8_t pulse_len)
@@ -145,7 +148,7 @@ void prepare_pwm_output(const servos_pos_t positions, const uint8_t *sorted_idx,
 
     for (uint8_t i = 0; i < SERVOS_COUNT; ++i, ++sorted_idx)
     {
-        servo_pos_t position = positions[*sorted_idx];
+        const servo_pos_t position = positions[*sorted_idx];
         if (position == SERVOS_NO_POS)
         {
             continue;
@@ -222,5 +225,5 @@ void servo_set_many(const servos_pos_t positions)
 
     cli();  // it's safe to disable interrupts her, because no tim will fire
     memcpy(pwms_output, pwm_output_buffer, sizeof(pwms_output_t));
-    sie();
+    sei();
 }
