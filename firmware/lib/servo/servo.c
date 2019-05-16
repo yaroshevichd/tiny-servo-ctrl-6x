@@ -223,7 +223,8 @@ void servo_set_many(const servos_pos_t positions)
     // wait a time windows to set new settings
     while (TCNT0 < 20 || TCNT0 >= TIM_50HZ_INT - 1);
 
-    cli();  // it's safe to disable interrupts her, because no tim will fire
+    // it's safe to disable interrupts here, because no critical interrups will fire
+    cli();
     memcpy(pwms_output, pwm_output_buffer, sizeof(pwms_output_t));
     sei();
 }
